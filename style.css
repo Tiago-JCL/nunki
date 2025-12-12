@@ -148,28 +148,40 @@ input[type="number"]:focus{
   color: var(--muted);
 }
 
-.bar{
-  position: relative;
-  height: 14px;
+/* 20 bolinhas = 5% cada (0..100) */
+.dotStrip{
+  display:flex;
+  gap: 6px;
+  align-items:center;
+  justify-content: flex-start;
+  min-height: 18px;
+}
+
+.dotBtn{
+  width: 12px;
+  height: 12px;
   border-radius: 999px;
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.10);
-  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(255,255,255,.06);
+  padding: 0;
   cursor: pointer;
-  user-select: none;
+  transition: transform .08s ease, border-color .12s ease, background .12s ease;
 }
-.barFill{
-  height: 100%;
-  width: 0%;
-  background: linear-gradient(90deg, var(--green), #56ffa6);
-  box-shadow: 0 0 0 1px rgba(0,0,0,.06) inset;
+
+.dotBtn:hover{
+  transform: translateY(-1px);
+  border-color: rgba(255,255,255,.28);
 }
-.bar::after{
-  content: "";
-  position:absolute;
-  inset:0;
-  background: linear-gradient(90deg, rgba(255,255,255,.06), transparent 45%, rgba(255,255,255,.05));
-  pointer-events:none;
+
+.dotBtn.on{
+  border-color: rgba(43,228,119,.65);
+  background: linear-gradient(180deg, rgba(43,228,119,.95), rgba(43,228,119,.55));
+  box-shadow: 0 0 0 6px rgba(43,228,119,.10);
+}
+
+.dotBtn:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(43,228,119,.20);
 }
 
 .pct{
