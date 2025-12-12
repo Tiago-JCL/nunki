@@ -122,6 +122,45 @@ input[type="number"]:focus{
   color: var(--muted2);
 }
 
+select{
+  width: 180px;
+  background: var(--card2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 12px;
+  outline: none;
+  font-weight: 650;
+}
+select:focus{
+  border-color: rgba(43,228,119,.5);
+  box-shadow: 0 0 0 3px rgba(43,228,119,.12);
+}
+.badge{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 12px;
+  line-height: 1;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-left: 10px;
+  border: 1px solid rgba(255,255,255,.12);
+}
+
+.badge.plus{
+  color: rgba(43,228,119,.95);
+  background: rgba(43,228,119,.12);
+  border-color: rgba(43,228,119,.35);
+}
+
+.badge.minus{
+  color: rgba(255,90,90,.95);
+  background: rgba(255,90,90,.12);
+  border-color: rgba(255,90,90,.35);
+}
+
 .divider{
   height: 1px;
   background: rgba(255,255,255,.10);
