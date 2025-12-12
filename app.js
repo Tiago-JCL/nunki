@@ -89,12 +89,22 @@ function buildBars(){
     pct.className = "pct";
     pct.textContent = "0%";
 
-    // Clique/arraste para ajustar o valor bruto 0..100
+    // Clique/arraste para ajustar o valor bruto 0..100 (SEM passar de 100 no total)
     const setFromEvent = (ev) => {
       const rect = bar.getBoundingClientRect();
       const x = Math.min(Math.max(ev.clientX - rect.left, 0), rect.width);
-      const val = clampInt((x / rect.width) * 100, 0, 100);
-      raw[s.key] = val;
+      const desired = clampInt((x / rect.width) * 100, 0, 100);
+    
+      // Soma das outras barras (não mexe nelas)
+      const sumOthers = STATS.reduce((sum, st) => {
+        if (st.key === s.key) return sum;
+        return sum + raw[st.key];
+      }, 0);
+    
+      // Máximo que essa barra pode ter sem estourar 100
+      const maxAllowed = Math.max(0, 100 - sumOthers);
+    
+      raw[s.key] = Math.min(desired, maxAllowed);
       render();
     };
 
