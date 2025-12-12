@@ -212,14 +212,72 @@ function toast(msg){
   toast._t = setTimeout(() => (elToast.textContent = ""), 1800);
 }
 
+function getFinalStats(){
+  const points = clampInt(parseInt(elPoints.value, 10), 0, 999999);
+
+  const norm = getNormalizedPercents();
+  const totalNorm = STATS.reduce((sum, s) => sum + norm[s.key], 0);
+
+  const added =
+    totalNorm > 0
+      ? computeAdded(points, norm)
+      : Object.fromEntries(STATS.map(s => [s.key, 0]));
+
+  const final = {};
+  for (const s of STATS){
+    final[s.key] = (base[s.key] || 0) + (added[s.key] || 0);
+  }
+  return final;
+}
+
+function formatWhatsapp(finalStats){
+  // Mantém exatamente o preset que você mostrou
+  return [
+    `_*• Attack |* ${finalStats.atk}_`,
+    `_*• Defense |* ${finalStats.def}_`,
+    `_*• Special Atk |* ${finalStats.spatk}_`,
+    `_*• Special Defense |* ${finalStats.spdef}_`,
+    `_*• Speed |* ${finalStats.speed}_`,
+  ].join("\n");
+}
+
+async function copyToClipboard(text){
+  // 1) padrão moderno (funciona bem no GitHub Pages / HTTPS)
+  if (navigator.clipboard?.writeText){
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  // 2) fallback (alguns casos locais / browsers antigos)
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.setAttribute("readonly", "");
+  ta.style.position = "fixed";
+  ta.style.left = "-9999px";
+  document.body.appendChild(ta);
+  ta.select();
+
+  const ok = document.execCommand("copy");
+  document.body.removeChild(ta);
+
+  if (!ok) throw new Error("copy_failed");
+}
+
 // Eventos
 elPoints.addEventListener("input", () => {
   elPoints.value = clampInt(parseInt(elPoints.value, 10), 0, 999999);
   render();
 });
 
-btnFormar.addEventListener("click", () => {
-  toast("Formação aplicada ✔");
+btnFormar.addEventListener("click", async () => {
+  try{
+    const finalStats = getFinalStats();
+    const text = formatWhatsapp(finalStats);
+    await copyToClipboard(text);
+    toast("Copiado ✔");
+  }catch (e){
+    toast("Não foi possível copiar ❌");
+  }
 });
 
 buildBars();
