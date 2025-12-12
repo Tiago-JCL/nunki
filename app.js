@@ -5,6 +5,62 @@ const STATS = [
   { key: "spdef", label: "SpDef", preview: "Special Defense" },
   { key: "speed", label: "Speed", preview: "Speed" },
 ];
+const NATURES = [
+  { name: "Líder",       up: "atk",   down: "spatk" },
+  { name: "Corajoso",    up: "atk",   down: "speed" },
+  { name: "Solitário",   up: "atk",   down: "def" },
+  { name: "Atrapalhado", up: "atk",   down: "spdef" },
+
+  { name: "Ousado",      up: "def",   down: "atk" },
+  { name: "Travesso",    up: "def",   down: "spatk" },
+  { name: "Carente",     up: "def",   down: "speed" },
+  { name: "Relaxado",    up: "def",   down: "spdef" },
+
+  { name: "Modesto",     up: "spatk", down: "atk" },
+  { name: "Tranquilo",   up: "spatk", down: "def" },
+  { name: "Calado",      up: "spatk", down: "speed" },
+  { name: "Impulsivo",   up: "spatk", down: "spdef" },
+
+  { name: "Calculista",  up: "spdef", down: "atk" },
+  { name: "Cuidadoso",   up: "spdef", down: "spatk" },
+  { name: "Gentil",      up: "spdef", down: "def" },
+  { name: "Narcisista",  up: "spdef", down: "speed" },
+
+  { name: "Ansioso",     up: "speed", down: "def" },
+  { name: "Alegre",      up: "speed", down: "spatk" },
+  { name: "Ingênuo",     up: "speed", down: "spdef" },
+  { name: "Tímido",      up: "speed", down: "atk" },
+
+  { name: "Sério",       up: null,    down: null }, // neutro
+];
+
+function getSelectedNature(){
+  const name = elNature?.value || "Sério";
+  return NATURES.find(n => n.name === name) || NATURES[NATURES.length - 1];
+}
+
+function getNatureMarkerForStat(statKey){
+  const n = getSelectedNature();
+  if (!n.up || !n.down) return "";
+  if (statKey === n.up) return "+";
+  if (statKey === n.down) return "-";
+  return "";
+}
+
+function buildNatureOptions(){
+  if (!elNature) return;
+  elNature.innerHTML = "";
+
+  for (const n of NATURES){
+    const opt = document.createElement("option");
+    opt.value = n.name;
+    opt.textContent = n.name;
+    elNature.appendChild(opt);
+  }
+
+  elNature.value = "Sério";
+  elNature.addEventListener("change", render);
+}
 
 // Valores "brutos" (0..100) que o usuário ajusta.
 // A UI EXIBE a versão normalizada, que sempre soma 100 quando totalBruto > 0.
@@ -18,6 +74,7 @@ const elPreview = document.getElementById("preview");
 const elTotalNorm = document.getElementById("totalNorm");
 const elToast = document.getElementById("toast");
 const btnFormar = document.getElementById("btnFormar");
+const elNature = document.getElementById("nature");
 
 function clampInt(v, min, max){
   const n = Number.isFinite(v) ? v : parseFloat(v);
@@ -188,6 +245,20 @@ function render(){
     k.className = "k";
     k.textContent = `• ${s.preview}`;
 
+    const mk = getNatureMarkerForStat(s.key);
+    if (mk === "+"){
+      const b = document.createElement("span");
+      b.className = "badge plus";
+      b.textContent = "+";
+      k.appendChild(b);
+    }else if (mk === "-"){
+      const b = document.createElement("span");
+      b.className = "badge minus";
+      b.textContent = "-";
+      k.appendChild(b);
+    }
+
+
     const v = document.createElement("span");
     v.className = "v";
 
@@ -231,13 +302,23 @@ function getFinalStats(){
 }
 
 function formatWhatsapp(finalStats){
-  // Mantém exatamente o preset que você mostrou
+  const n = getSelectedNature();
+
+  const line = (label, value, statKey) => {
+    const mk = getNatureMarkerForStat(statKey);
+    const suffix = mk ? ` (${mk})` : "";
+    // IMPORTANTe: (+)/(-) fica fora do "_" exatamente como você mandou
+    return `_*• ${label} |* ${value}_${suffix}`;
+  };
+
   return [
-    `_*• Attack |* ${finalStats.atk}_`,
-    `_*• Defense |* ${finalStats.def}_`,
-    `_*• Special Atk |* ${finalStats.spatk}_`,
-    `_*• Special Defense |* ${finalStats.spdef}_`,
-    `_*• Speed |* ${finalStats.speed}_`,
+    `_🧠 *• Nature:* ${n.name}_`,
+    "",
+    line("Attack", finalStats.atk, "atk"),
+    line("Defense", finalStats.def, "def"),
+    line("Special Atk", finalStats.spatk, "spatk"),
+    line("Special Defense", finalStats.spdef, "spdef"),
+    line("Speed", finalStats.speed, "speed"),
   ].join("\n");
 }
 
@@ -282,4 +363,5 @@ btnFormar.addEventListener("click", async () => {
 
 buildBars();
 buildBaseInputs();
+buildNatureOptions();
 render();
