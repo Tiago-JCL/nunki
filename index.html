@@ -3,13 +3,79 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Teste GitHub Pages</title>
+  <title>Distribuidora de Status</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-  <h1>Página 1</h1>
-  <p id="msg"></p>
 
-  <a href="pagina2.html">Ir para página 2</a>
+<body>
+  <main class="wrap">
+    <header class="top">
+      <h1>Distribuidora de Status</h1>
+      <p class="sub">Clique/arraste nas barras para ajustar as proporções. A soma é normalizada para 100%.</p>
+    </header>
+
+    <section class="grid">
+      <section class="card">
+        <div class="row">
+          <label class="label" for="points">Status a ser adicionado</label>
+          <div class="inputWrap">
+            <input id="points" type="number" min="0" step="1" value="0" />
+            <span class="hint">pontos</span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="sectionTitle">
+          <h2>Distribuição</h2>
+          <div class="meta">
+            <span>Total normalizado:</span>
+            <strong id="totalNorm">0%</strong>
+          </div>
+        </div>
+
+        <div class="bars" id="bars">
+          <!-- Itens gerados no JS -->
+        </div>
+
+        <div class="note">
+          <span class="dot"></span>
+          Dica: as porcentagens exibidas são <b>normalizadas</b>. Se o total “bruto” for 0, tudo fica 0%.
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="sectionTitle">
+          <h2>Status Base</h2>
+          <div class="meta">
+            <span>Somando base + adicionados</span>
+          </div>
+        </div>
+
+        <div class="baseGrid" id="baseGrid">
+          <!-- Inputs gerados no JS -->
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="sectionTitle">
+          <h2>Pré-visualização</h2>
+          <div class="meta">
+            <span>Resultado final</span>
+          </div>
+        </div>
+
+        <ul class="preview" id="preview"></ul>
+
+        <button class="btn" id="btnFormar" type="button">Formar</button>
+        <p class="toast" id="toast" aria-live="polite"></p>
+      </section>
+    </section>
+
+    <footer class="foot">
+      <small>HTML + CSS + JS puro (GitHub Pages friendly).</small>
+    </footer>
+  </main>
 
   <script src="app.js"></script>
 </body>
