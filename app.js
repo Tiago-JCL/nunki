@@ -67,6 +67,7 @@ function computeAdded(points, normPct){
 
 function buildBars(){
   elBars.innerHTML = "";
+
   for (const s of STATS){
     const row = document.createElement("div");
     row.className = "barRow";
@@ -75,60 +76,50 @@ function buildBars(){
     name.className = "statName";
     name.textContent = s.label;
 
-    const bar = document.createElement("div");
-    bar.className = "bar";
-    bar.setAttribute("role", "slider");
-    bar.setAttribute("aria-label", `Distribuição ${s.label}`);
+    const strip = document.createElement("div");
+    strip.className = "dotStrip";
+    strip.setAttribute("aria-label", `Distribuição ${s.label}`);
 
-    const fill = document.createElement("div");
-    fill.className = "barFill";
-    fill.style.width = "0%";
-    bar.appendChild(fill);
+    const dots = [];
+    for (let i = 1; i <= 20; i++){
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "dotBtn";
+      btn.setAttribute("aria-label", `${s.label} ${i * 5}%`);
+      btn.setAttribute("aria-pressed", "false");
+
+      btn.addEventListener("click", () => {
+        const desired = i * 5;
+        const next = (raw[s.key] === desired) ? 0 : desired; // clicar no mesmo nível zera
+
+        const sumOthers = STATS.reduce((sum, st) => {
+          if (st.key === s.key) return sum;
+          return sum + raw[st.key];
+        }, 0);
+
+        // Se passar de 100, não deixa clicar
+        if (sumOthers + next > 100){
+          toast("Limite de 100% atingido");
+          return;
+        }
+
+        raw[s.key] = next;
+        render();
+      });
+
+      dots.push(btn);
+      strip.appendChild(btn);
+    }
 
     const pct = document.createElement("div");
     pct.className = "pct";
     pct.textContent = "0%";
 
-    // Clique/arraste para ajustar o valor bruto 0..100 (SEM passar de 100 no total)
-    const setFromEvent = (ev) => {
-      const rect = bar.getBoundingClientRect();
-      const x = Math.min(Math.max(ev.clientX - rect.left, 0), rect.width);
-      const desired = clampInt((x / rect.width) * 100, 0, 100);
-    
-      // Soma das outras barras (não mexe nelas)
-      const sumOthers = STATS.reduce((sum, st) => {
-        if (st.key === s.key) return sum;
-        return sum + raw[st.key];
-      }, 0);
-    
-      // Máximo que essa barra pode ter sem estourar 100
-      const maxAllowed = Math.max(0, 100 - sumOthers);
-    
-      raw[s.key] = Math.min(desired, maxAllowed);
-      render();
-    };
-
-    let dragging = false;
-
-    bar.addEventListener("pointerdown", (ev) => {
-      dragging = true;
-      bar.setPointerCapture(ev.pointerId);
-      setFromEvent(ev);
-    });
-
-    bar.addEventListener("pointermove", (ev) => {
-      if (!dragging) return;
-      setFromEvent(ev);
-    });
-
-    bar.addEventListener("pointerup", () => { dragging = false; });
-    bar.addEventListener("pointercancel", () => { dragging = false; });
-
     row.appendChild(name);
-    row.appendChild(bar);
+    row.appendChild(strip);
     row.appendChild(pct);
 
-    row._fill = fill;
+    row._dots = dots;
     row._pct = pct;
     row._key = s.key;
 
@@ -166,20 +157,27 @@ function render(){
   const points = clampInt(parseInt(elPoints.value, 10), 0, 999999);
 
   const norm = getNormalizedPercents();
-  const totalNorm = STATS.reduce((sum, s) => sum + norm[s.key], 0);
-  elTotalNorm.textContent = totalNorm > 0 ? "100%" : "0%";
-
-  // Atualiza as barras com % NORMALIZADA
+  const totalRaw = STATS.reduce((sum, s) => sum + raw[s.key], 0);
+  elTotalNorm.textContent = `${totalRaw}%`;
+  
+  // Atualiza as bolinhas (0..100 em passos de 5)
   const rows = [...elBars.querySelectorAll(".barRow")];
   for (const row of rows){
     const key = row._key;
-    const pct = totalNorm > 0 ? norm[key] : 0;
-    row._fill.style.width = `${pct}%`;
-    row._pct.textContent = `${Math.round(pct)}%`;
+    const active = Math.round((raw[key] || 0) / 5);
+  
+    row._dots.forEach((btn, idx) => {
+      const on = idx < active;
+      btn.classList.toggle("on", on);
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  
+    row._pct.textContent = `${raw[key] || 0}%`;
   }
-
+  
   // Calcula pontos adicionados e soma no base
-  const added = totalNorm > 0 ? computeAdded(points, norm) : Object.fromEntries(STATS.map(s => [s.key, 0]));
+  const added = totalRaw > 0 ? computeAdded(points, norm) : Object.fromEntries(STATS.map(s => [s.key, 0]));
+
 
   // Preview
   elPreview.innerHTML = "";
